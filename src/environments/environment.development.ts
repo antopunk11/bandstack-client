@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://bandstack-api.onrender.com/v1'
+  apiUrl: 'https://bandstack-api.onrender.com'
 };
