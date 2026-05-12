@@ -1,0 +1,159 @@
+<!-- src/app/features/auth/login/login.component.html -->
+<!-- Estética: dark industrial / utilitarian — optimizado para mobile-first -->
+
+<div class="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-4 py-12">
+
+  <!-- Background texture sutil -->
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(234,88,12,0.06)_0%,_transparent_60%)] pointer-events-none"></div>
+
+  <div class="relative w-full max-w-sm">
+
+    <!-- Logo / Header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-600 mb-4 shadow-lg shadow-orange-900/40">
+        <!-- Icono: nota musical simple -->
+        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-white font-mono">
+        BANDSTACK
+      </h1>
+      <p class="text-zinc-500 text-sm mt-1 tracking-widest uppercase">Manager</p>
+    </div>
+
+    <!-- Aviso sesión expirada -->
+    @if (sessionExpiredMsg()) {
+      <div class="mb-5 flex items-start gap-3 rounded-lg border border-amber-600/40 bg-amber-950/40 px-4 py-3 text-sm text-amber-300">
+        <svg class="w-4 h-4 mt-0.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ sessionExpiredMsg() }}</span>
+      </div>
+    }
+
+    <!-- Card del formulario -->
+    <div class="rounded-2xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm px-6 py-8 shadow-2xl">
+
+      <h2 class="text-lg font-semibold text-zinc-100 mb-6">Iniciar sesión</h2>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-5">
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="banda@ejemplo.com"
+            class="w-full rounded-lg border px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 bg-zinc-800/60
+                   transition-colors outline-none
+                   focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40
+                   disabled:opacity-50"
+            [class.border-zinc-700]="!hasError('email', 'required') && !hasError('email', 'email')"
+            [class.border-red-500]="hasError('email', 'required') || hasError('email', 'email')"
+            [attr.aria-describedby]="hasError('email', 'email') ? 'email-error' : null"
+          />
+          @if (hasError('email', 'required')) {
+            <p id="email-error" class="mt-1.5 text-xs text-red-400">El email es obligatorio.</p>
+          } @else if (hasError('email', 'email')) {
+            <p id="email-error" class="mt-1.5 text-xs text-red-400">Introduce un email válido.</p>
+          }
+        </div>
+
+        <!-- Contraseña -->
+        <div>
+          <label for="password" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+            Contraseña
+          </label>
+          <div class="relative">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="w-full rounded-lg border px-4 py-3 pr-12 text-sm text-zinc-100 placeholder-zinc-600 bg-zinc-800/60
+                     transition-colors outline-none
+                     focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40
+                     disabled:opacity-50"
+              [class.border-zinc-700]="!hasError('password', 'required') && !hasError('password', 'minlength')"
+              [class.border-red-500]="hasError('password', 'required') || hasError('password', 'minlength')"
+            />
+            <!-- Toggle show/hide password -->
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              @if (showPassword()) {
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (hasError('password', 'required')) {
+            <p class="mt-1.5 text-xs text-red-400">La contraseña es obligatoria.</p>
+          } @else if (hasError('password', 'minlength')) {
+            <p class="mt-1.5 text-xs text-red-400">Mínimo 6 caracteres.</p>
+          }
+        </div>
+
+        <!-- Error global de la API -->
+        @if (errorMessage()) {
+          <div class="flex items-start gap-3 rounded-lg border border-red-700/40 bg-red-950/30 px-4 py-3 text-sm text-red-300" role="alert">
+            <svg class="w-4 h-4 mt-0.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Botón submit -->
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="w-full rounded-lg bg-orange-600 px-4 py-3.5 text-sm font-semibold text-white
+                 transition-all duration-150
+                 hover:bg-orange-500 active:scale-[0.98]
+                 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100
+                 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500
+                 shadow-lg shadow-orange-900/30 mt-2"
+        >
+          @if (isLoading()) {
+            <span class="inline-flex items-center gap-2 justify-center">
+              <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Entrando...
+            </span>
+          } @else {
+            Entrar
+          }
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-zinc-600 mt-6">
+      BandStack Manager &copy; {{ year }} — Hecho para bandas autogestionadas.
+    </p>
+
+  </div>
+</div>

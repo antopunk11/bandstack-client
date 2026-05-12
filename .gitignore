@@ -1,0 +1,29 @@
+# Node y dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Archivos compilados
+dist/
+out-tsc/
+
+# Caché de Angular
+.angular/
+
+# Entornos de desarrollo y Editores
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
