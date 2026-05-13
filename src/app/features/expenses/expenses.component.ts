@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ExpenseService } from '../../core/services/expense.service';
 import { EventService } from '../../core/services/event.service';
+import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/auth.models';
 
 @Component({
   selector: 'app-expenses',
@@ -13,6 +15,7 @@ import { EventService } from '../../core/services/event.service';
 export class ExpensesComponent implements OnInit {
   private expenseService = inject(ExpenseService);
   private eventService = inject(EventService);
+  private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
 
@@ -26,12 +29,15 @@ export class ExpensesComponent implements OnInit {
   showCreateForm = false;
   expenseForm: FormGroup;
   isSubmitting = false;
+  editingExpenseId: number | null = null;
+  currentUser: User | null = null;
 
   toastMessage: string | null = null;
 
   categories = ['Dieta', 'Gasolina', 'Peaje', 'Alojamiento', 'Promo', 'Alquiler', 'Otros'];
 
   constructor() {
+    this.currentUser = this.authService.user$();
     this.expenseForm = this.fb.group({
       category: ['Gasolina', Validators.required],
       amount: [null, [Validators.required, Validators.min(0.01)]],
@@ -85,7 +91,22 @@ export class ExpensesComponent implements OnInit {
     this.showCreateForm = !this.showCreateForm;
     if (!this.showCreateForm) {
       this.expenseForm.reset({ category: 'Gasolina', expense_date: new Date().toISOString().split('T')[0], is_paid: 0 });
+      this.editingExpenseId = null;
     }
+  }
+
+  openEditForm(expense: any): void {
+    this.editingExpenseId = expense.id;
+    this.expenseForm.patchValue({
+      category: expense.category,
+      amount: expense.amount,
+      expense_date: expense.expense_date,
+      event_id: expense.event_id || '',
+      description: expense.description || '',
+      is_paid: expense.is_paid ? 1 : 0
+    });
+    this.showCreateForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   onSubmit(): void {
@@ -95,15 +116,35 @@ export class ExpensesComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    this.expenseService.createExpense(this.expenseForm.value).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.showToast('Gasto registrado correctamente');
-        this.toggleCreateForm();
-        this.loadData(); // Recargamos la tabla
-      },
-      error: (err) => { this.isSubmitting = false; alert('Error al registrar el gasto.'); }
-    });
+    const payload = this.expenseForm.value;
+
+    if (this.editingExpenseId) {
+      this.expenseService.updateExpense(this.editingExpenseId, payload).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.showToast('Gasto actualizado correctamente');
+          this.toggleCreateForm();
+          this.loadData();
+        },
+        error: (err) => { 
+          this.isSubmitting = false; 
+          alert(err.error?.message || 'Error al actualizar el gasto.'); 
+        }
+      });
+    } else {
+      this.expenseService.createExpense(payload).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.showToast('Gasto registrado correctamente');
+          this.toggleCreateForm();
+          this.loadData();
+        },
+        error: (err) => { 
+          this.isSubmitting = false; 
+          alert(err.error?.message || 'Error al registrar el gasto.'); 
+        }
+      });
+    }
   }
 
   togglePaymentStatus(expense: any): void {
@@ -120,9 +161,36 @@ export class ExpensesComponent implements OnInit {
     });
   }
 
+  deleteExpense(expense: any): void {
+    if (confirm(`¿Estás seguro de que deseas eliminar este gasto de ${expense.amount}€?`)) {
+      this.expenseService.deleteExpense(expense.id).subscribe({
+        next: () => {
+          this.expenses = this.expenses.filter(e => e.id !== expense.id);
+          this.applyFilter();
+          this.showToast('Gasto eliminado correctamente');
+        },
+        error: (err) => alert(err.error?.message || 'Error al eliminar el gasto.')
+      });
+    }
+  }
+
   showToast(message: string): void {
     this.toastMessage = message;
     this.cdr.detectChanges();
     setTimeout(() => { this.toastMessage = null; this.cdr.detectChanges(); }, 3000);
+  }
+
+  canEdit(expense: any): boolean {
+    if (!this.currentUser) {
+      return false;
+    }
+
+    // Admins y Superadmins siempre pueden editar
+    if (this.currentUser.role === 'admin' || this.currentUser.role === 'superadmin') {
+      return true;
+    }
+
+    // Los miembros solo pueden editar los gastos que han creado
+    return this.currentUser.id === expense.created_by;
   }
 }
