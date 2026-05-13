@@ -9,6 +9,7 @@
       <div>
         <h2 class="text-2xl font-bold text-white">Dashboard Financiero</h2>
         <p class="text-orange-500 text-sm font-medium" *ngIf="event">Liquidación: {{ event.name }}</p>
+        <p class="text-orange-500 text-sm font-medium" *ngIf="!event && summary">Histórico Global de la Gira</p>
       </div>
       
       <!-- Botón de Cerrar Evento -->
@@ -32,21 +33,14 @@
     <svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
   </div>
 
-  <!-- ESTADO SIN EVENTO SELECCIONADO (Dashboard General) -->
-  <div *ngIf="!isLoading && !event && !errorMessage" class="bg-zinc-900 border-2 border-dashed border-zinc-800 rounded-xl p-10 text-center animate-fade-in-down">
-    <p class="text-zinc-300 font-medium">Resumen General</p>
-    <p class="text-zinc-500 text-sm mt-1">Navega a la sección de "Eventos" y pulsa en "Liquidación" para ver el rendimiento de un concierto específico.</p>
-    <!-- En futuras iteraciones aquí iría un resumen global histórico de la banda -->
-  </div>
-
   <!-- MENSAJE DE ERROR -->
   <div *ngIf="!isLoading && errorMessage" class="bg-red-900/20 border border-red-900/50 text-red-400 rounded-xl p-6 text-center animate-fade-in-down">
     <p class="font-bold text-lg mb-1">¡Ups!</p>
     <p>{{ errorMessage }}</p>
   </div>
 
-  <!-- CONTENIDO DEL DASHBOARD DE EVENTO -->
-  <div *ngIf="!isLoading && event" class="space-y-6 animate-fade-in-down">
+  <!-- CONTENIDO DEL DASHBOARD (EVENTO O GLOBAL) -->
+  <div *ngIf="!isLoading && summary" class="space-y-6 animate-fade-in-down">
     
     <!-- TARJETAS DE RESUMEN (KPIs) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -58,8 +52,9 @@
 
       <!-- Tarjeta para el Caché -->
       <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-zinc-800 flex flex-col justify-center">
-        <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Caché (Actuación)</p>
-        <p class="text-2xl font-bold text-zinc-100">{{ event.cache_amount | number:'1.2-2' }}€</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">{{ event ? 'Caché (Actuación)' : 'Caché Histórico' }}</p>
+        <p class="text-2xl font-bold text-zinc-100" *ngIf="event">{{ event.cache_amount | number:'1.2-2' }}€</p>
+        <p class="text-2xl font-bold text-zinc-100" *ngIf="!event">{{ summary.cache | number:'1.2-2' }}€</p>
       </div>
 
       <!-- Tarjeta de Gastos -->

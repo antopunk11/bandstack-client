@@ -33,4 +33,9 @@ export class EventService {
   getEventSummary(eventId: number): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/events/summary?event_id=${eventId}`);
   }
+
+    getGlobalSummary() {
+    return this.http.get<any>(`${this.API_URL}/events/summary?event_id=global`);
+  }
+
 }

@@ -30,6 +30,8 @@ export class DashboardComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['event_id']) {
         this.loadDashboard(+params['event_id']);
+      } else {
+        this.loadGlobalDashboard();
       }
     });
   }
@@ -57,6 +59,34 @@ export class DashboardComponent implements OnInit {
         console.error('Error al cargar la liquidación', err);
         this.isLoading = false;
         this.errorMessage = 'Hubo un problema al cargar los datos del evento.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadGlobalDashboard(): void {
+    this.isLoading = true;
+    this.eventService.getGlobalSummary().subscribe({
+      next: (res) => {
+        this.event = null; // null indica que estamos en la vista global
+        this.summary = res.data.summary;
+        this.errorMessage = null;
+        
+        // Calculamos el gran total global
+        const salesTotal = this.summary.totals.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
+        this.totalRevenue = salesTotal + Number(this.summary.cache || 0);
+
+        // Calculamos los gastos y el beneficio neto histórico
+        this.totalExpenses = Number(this.summary.expenses || 0);
+        this.netProfit = this.totalRevenue - this.totalExpenses;
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar el histórico global', err);
+        this.isLoading = false;
+        this.errorMessage = 'Hubo un problema al cargar los datos globales.';
         this.cdr.detectChanges();
       }
     });
