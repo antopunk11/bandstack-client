@@ -193,4 +193,17 @@ export class ExpensesComponent implements OnInit {
     // Los miembros solo pueden editar los gastos que han creado
     return this.currentUser.id === expense.created_by;
   }
+
+  getCategoryColor(category: string): string {
+    const colors: Record<string, string> = {
+      'Dieta': 'text-emerald-400',
+      'Gasolina': 'text-amber-400',
+      'Peaje': 'text-blue-400',
+      'Alojamiento': 'text-indigo-400',
+      'Promo': 'text-fuchsia-400',
+      'Alquiler': 'text-rose-400',
+      'Otros': 'text-zinc-400'
+    };
+    return colors[category] || 'text-zinc-400';
+  }
 }
