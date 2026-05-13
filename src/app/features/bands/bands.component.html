@@ -41,7 +41,15 @@
         <tbody class="divide-y divide-zinc-800/50">
           <tr *ngFor="let band of bands" class="hover:bg-zinc-800/30 transition-colors">
             <td class="p-5 text-center text-zinc-500 font-mono text-sm">#{{ band.id }}</td>
-            <td class="p-5 font-bold text-zinc-100 text-lg">{{ band.name }}</td>
+            <td class="p-5 font-bold text-zinc-100 text-lg">
+              <div class="flex items-center gap-3">
+                <img *ngIf="band.logo_url" [src]="band.logo_url" alt="{{ band.name }}" class="w-10 h-10 rounded-full object-cover border border-zinc-700 shadow-sm">
+                <div *ngIf="!band.logo_url" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-zinc-400 text-sm shadow-sm">
+                  {{ band.name.charAt(0) | uppercase }}
+                </div>
+                <span>{{ band.name }}</span>
+              </div>
+            </td>
             <td class="p-5 text-center text-sm text-zinc-400">{{ band.created_at | date:'mediumDate' }}</td>
             <td class="p-5 text-right space-x-2">
               <button (click)="openEditForm(band)" class="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors">
@@ -73,6 +81,18 @@
       <div>
         <label class="block text-sm font-medium text-zinc-400 mb-1.5">Nombre de la Banda</label>
         <input type="text" formControlName="name" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors" placeholder="Ej. The Rolling Stones">
+      </div>
+
+      <!-- Input para el Logo -->
+      <div>
+        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Logo de la banda (Opcional)</label>
+        <input type="file" (change)="onFileSelected($event)" accept="image/*" class="w-full p-2 bg-zinc-950 text-zinc-400 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-purple-500 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600/20 file:text-purple-400 hover:file:bg-purple-600/30 cursor-pointer">
+      </div>
+
+      <!-- Previsualización de la imagen -->
+      <div *ngIf="previewUrl" class="mt-2">
+        <p class="text-sm font-medium text-zinc-400 mb-2">Previsualización:</p>
+        <img [src]="previewUrl" alt="Logo de la banda" class="w-24 h-24 rounded-full object-cover border border-zinc-700 shadow-lg">
       </div>
 
       <div class="pt-4 flex gap-3">

@@ -24,6 +24,8 @@ export class BandsComponent implements OnInit {
   showForm = false;
   isSubmitting = false;
   toastMessage: string | null = null;
+  selectedFile: File | null = null;
+  previewUrl: string | ArrayBuffer | null = null;
 
   constructor() {
     this.bandForm = this.fb.group({
@@ -54,12 +56,16 @@ export class BandsComponent implements OnInit {
 
   openCreateForm(): void {
     this.isEditing = false;
+    this.selectedFile = null;
+    this.previewUrl = null;
     this.bandForm.reset();
     this.showForm = true;
   }
 
   openEditForm(band: any): void {
     this.isEditing = true;
+    this.selectedFile = null;
+    this.previewUrl = band.logo_url || null;
     this.bandForm.patchValue({ id: band.id, name: band.name });
     this.showForm = true;
   }
@@ -68,13 +74,33 @@ export class BandsComponent implements OnInit {
     this.showForm = false;
   }
 
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = e => this.previewUrl = reader.result;
+      reader.readAsDataURL(file);
+    }
+  }
+
   onSubmit(): void {
     if (this.bandForm.invalid) return;
     
     this.isSubmitting = true;
+    
+    const formData = new FormData();
+    if (this.isEditing) {
+      formData.append('id', this.bandForm.value.id);
+    }
+    formData.append('name', this.bandForm.value.name);
+    if (this.selectedFile) {
+      formData.append('logo_file', this.selectedFile);
+    }
+
     const request = this.isEditing 
-      ? this.bandService.updateBand(this.bandForm.value) 
-      : this.bandService.createBand(this.bandForm.value);
+      ? this.bandService.updateBand(formData as any) 
+      : this.bandService.createBand(formData as any);
 
     request.subscribe({
       next: () => {

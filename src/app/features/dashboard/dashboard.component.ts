@@ -17,6 +17,7 @@ export class DashboardComponent implements OnInit {
   public authService = inject(AuthService);
 
   isLoading = false; // Empezamos en false por si entra sin evento
+  currentUser: any = null;
   event: any = null;
   summary: any = null;
   isClosing = false;
@@ -27,6 +28,8 @@ export class DashboardComponent implements OnInit {
   netProfit = 0;
 
   ngOnInit(): void {
+    this.currentUser = this.authService.user$();
+
     this.route.queryParams.subscribe(params => {
       if (params['event_id']) {
         this.loadDashboard(+params['event_id']);
