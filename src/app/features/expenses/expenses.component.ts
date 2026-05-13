@@ -31,6 +31,7 @@ export class ExpensesComponent implements OnInit {
   isSubmitting = false;
   editingExpenseId: number | null = null;
   currentUser: User | null = null;
+  selectedFile: File | null = null;
 
   toastMessage: string | null = null;
 
@@ -92,6 +93,7 @@ export class ExpensesComponent implements OnInit {
     if (!this.showCreateForm) {
       this.expenseForm.reset({ category: 'Gasolina', expense_date: new Date().toISOString().split('T')[0], is_paid: 0 });
       this.editingExpenseId = null;
+      this.selectedFile = null;
     }
   }
 
@@ -105,8 +107,16 @@ export class ExpensesComponent implements OnInit {
       description: expense.description || '',
       is_paid: expense.is_paid ? 1 : 0
     });
+    this.selectedFile = null; // No editamos archivos subidos por el momento
     this.showCreateForm = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
   }
 
   onSubmit(): void {
@@ -119,7 +129,20 @@ export class ExpensesComponent implements OnInit {
     const payload = this.expenseForm.value;
 
     if (this.editingExpenseId) {
-      this.expenseService.updateExpense(this.editingExpenseId, payload).subscribe({
+      let updatePayload: any = payload;
+      
+      if (this.selectedFile) {
+        const formData = new FormData();
+        Object.keys(payload).forEach(key => {
+          if (payload[key] !== null && payload[key] !== undefined && payload[key] !== '') {
+            formData.append(key, payload[key]);
+          }
+        });
+        formData.append('receipt_file', this.selectedFile);
+        updatePayload = formData;
+      }
+
+      this.expenseService.updateExpense(this.editingExpenseId, updatePayload).subscribe({
         next: () => {
           this.isSubmitting = false;
           this.showToast('Gasto actualizado correctamente');
@@ -132,7 +155,20 @@ export class ExpensesComponent implements OnInit {
         }
       });
     } else {
-      this.expenseService.createExpense(payload).subscribe({
+      let createPayload: any = payload;
+      
+      if (this.selectedFile) {
+        const formData = new FormData();
+        Object.keys(payload).forEach(key => {
+          if (payload[key] !== null && payload[key] !== undefined && payload[key] !== '') {
+            formData.append(key, payload[key]);
+          }
+        });
+        formData.append('receipt_file', this.selectedFile);
+        createPayload = formData;
+      }
+
+      this.expenseService.createExpense(createPayload).subscribe({
         next: () => {
           this.isSubmitting = false;
           this.showToast('Gasto registrado correctamente');

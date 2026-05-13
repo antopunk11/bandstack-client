@@ -19,6 +19,11 @@ export class ExpenseService {
   }
 
   updateExpense(id: number, data: any): Observable<any> {
+    if (data instanceof FormData) {
+      data.append('id', id.toString());
+      data.append('_method', 'PUT'); // Trick para que PHP reciba los archivos
+      return this.http.post<any>(`${this.API_URL}/expenses`, data);
+    }
     return this.http.put<any>(`${this.API_URL}/expenses`, { id, ...data });
   }
 
