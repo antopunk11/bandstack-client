@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment.development';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,7 @@ import { Observable } from 'rxjs';
 export class UserService {
   private http = inject(HttpClient);
   // Ajusta la URL base según cómo tengas configurado tu entorno
-  private apiUrl = 'http://localhost/BandStack%20Manager/api/v1'; 
+  private apiUrl = environment.apiUrl; 
 
   getUsers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/users`);
