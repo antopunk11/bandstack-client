@@ -2,6 +2,7 @@ export type UserRole = 'admin' | 'member' | 'superadmin';
 
 export interface User {
   id: number;
+  band_id?: number;
   name: string;
   email: string;
   role: UserRole;

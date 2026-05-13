@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
+import { BandService } from '../../core/services/band.service';
 
 @Component({
   selector: 'app-users',
@@ -13,10 +14,12 @@ import { AuthService } from '../../core/services/auth.service';
 export class UsersComponent implements OnInit {
   private userService = inject(UserService);
   public authService = inject(AuthService);
+  private bandService = inject(BandService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
 
   users: any[] = [];
+  bands: any[] = [];
   isLoading = true;
   
   userForm: FormGroup;
@@ -28,6 +31,7 @@ export class UsersComponent implements OnInit {
   constructor() {
     this.userForm = this.fb.group({
       id: [null],
+      band_id: [null],
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: [''], // Requerido solo al crear
@@ -38,6 +42,9 @@ export class UsersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    if (this.authService.hasRole('superadmin')) {
+      this.loadBands();
+    }
   }
 
   loadUsers(): void {
@@ -56,9 +63,18 @@ export class UsersComponent implements OnInit {
     });
   }
 
+  loadBands(): void {
+    this.bandService.getBands().subscribe({
+      next: (res) => {
+        this.bands = res.data || [];
+      },
+      error: (err) => console.error('Error cargando bandas', err)
+    });
+  }
+
   openCreateForm(): void {
     this.isEditing = false;
-    this.userForm.reset({ role: 'member', is_active: 1 });
+    this.userForm.reset({ role: 'member', is_active: 1, band_id: this.authService.user$()?.band_id || 1 });
     this.userForm.get('password')?.setValidators([Validators.required]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.showForm = true;
@@ -68,6 +84,7 @@ export class UsersComponent implements OnInit {
     this.isEditing = true;
     this.userForm.patchValue({
       id: user.id,
+      band_id: user.band_id,
       name: user.name,
       email: user.email,
       role: user.role,
