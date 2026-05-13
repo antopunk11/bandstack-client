@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://bandstack-api.onrender.com'
+  apiUrl: 'http://localhost/bandstack manager/ap/v1'
 };

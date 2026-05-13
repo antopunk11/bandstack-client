@@ -56,12 +56,29 @@
         <p class="text-3xl font-black text-white relative z-10">{{ totalRevenue | number:'1.2-2' }}€</p>
       </div>
 
-      <!-- Nueva tarjeta para el Caché -->
+      <!-- Tarjeta para el Caché -->
       <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-zinc-800 flex flex-col justify-center">
         <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Caché (Actuación)</p>
         <p class="text-2xl font-bold text-zinc-100">{{ event.cache_amount | number:'1.2-2' }}€</p>
       </div>
 
+      <!-- Tarjeta de Gastos -->
+      <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-red-900/30 flex flex-col justify-center relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-500/5 rounded-full blur-xl"></div>
+        <p class="text-xs font-bold uppercase tracking-wider text-red-500 mb-1 relative z-10">Gastos Totales</p>
+        <p class="text-2xl font-bold text-zinc-100 relative z-10">{{ totalExpenses | number:'1.2-2' }}€</p>
+      </div>
+
+      <!-- Tarjeta Beneficio Neto -->
+      <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-emerald-900/30 flex flex-col justify-center relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl"></div>
+        <p class="text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1 relative z-10">Beneficio Neto</p>
+        <p class="text-3xl font-black text-white relative z-10">{{ netProfit | number:'1.2-2' }}€</p>
+      </div>
+    </div>
+
+    <!-- DESGLOSE DE MÉTODOS DE PAGO -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       <div *ngFor="let total of summary.totals" class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-zinc-800 flex flex-col justify-center">
         <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">
           Merch: {{ total.payment_method === 'cash' ? 'Efectivo' : (total.payment_method === 'bizum' ? 'Bizum' : 'Tarjeta') }}

@@ -23,6 +23,8 @@ export class DashboardComponent implements OnInit {
   
   errorMessage: string | null = null;
   totalRevenue = 0;
+  totalExpenses = 0;
+  netProfit = 0;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -43,6 +45,10 @@ export class DashboardComponent implements OnInit {
         // Calculamos el gran total sumando las ventas de merch y el caché del evento
         const salesTotal = this.summary.totals.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
         this.totalRevenue = salesTotal + Number(this.event.cache_amount || 0);
+
+        // Calculamos los gastos y el beneficio neto real
+        this.totalExpenses = Number(this.summary.expenses || 0);
+        this.netProfit = this.totalRevenue - this.totalExpenses;
 
         this.isLoading = false;
         this.cdr.detectChanges();
