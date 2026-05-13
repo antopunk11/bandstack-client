@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit {
   totalRevenue = 0;
   totalExpenses = 0;
   netProfit = 0;
+  pendingCache = 0;
 
   ngOnInit(): void {
     this.currentUser = this.authService.user$();
@@ -47,9 +48,17 @@ export class DashboardComponent implements OnInit {
         this.summary = res.data.summary;
         this.errorMessage = null;
         
-        // Calculamos el gran total sumando las ventas de merch y el caché del evento
+        // Verificamos si el evento es futuro para separar el caché pendiente
+        const eventDate = new Date(this.event.event_date);
+        const isFuture = eventDate > new Date();
+        
+        const cacheAmount = Number(this.event.cache_amount || 0);
+        this.pendingCache = isFuture ? cacheAmount : 0;
+        const collectedCache = isFuture ? 0 : cacheAmount;
+
+        // Calculamos el gran total sumando las ventas de merch y el caché cobrado del evento
         const salesTotal = this.summary.totals.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
-        this.totalRevenue = salesTotal + Number(this.event.cache_amount || 0);
+        this.totalRevenue = salesTotal + collectedCache;
 
         // Calculamos los gastos y el beneficio neto real
         this.totalExpenses = Number(this.summary.expenses || 0);
@@ -75,9 +84,12 @@ export class DashboardComponent implements OnInit {
         this.summary = res.data.summary;
         this.errorMessage = null;
         
-        // Calculamos el gran total global
+        // Calculamos el gran total global (solo con el caché ya cobrado)
         const salesTotal = this.summary.totals.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
-        this.totalRevenue = salesTotal + Number(this.summary.cache || 0);
+        this.totalRevenue = salesTotal + Number(this.summary.collected_cache || this.summary.cache || 0);
+
+        // Asignamos el caché pendiente de cobro
+        this.pendingCache = Number(this.summary.pending_cache || 0);
 
         // Calculamos los gastos y el beneficio neto histórico
         this.totalExpenses = Number(this.summary.expenses || 0);

@@ -71,8 +71,19 @@
   <!-- CONTENIDO DEL DASHBOARD (EVENTO O GLOBAL) -->
   <div *ngIf="!isLoading && summary" class="space-y-6 animate-fade-in-down">
     
+    <!-- ALERTA DE EVENTO CERRADO -->
+    <div *ngIf="event?.status === 'closed'" class="bg-zinc-900/80 border border-zinc-700 rounded-xl p-4 flex items-start gap-3">
+      <svg class="w-5 h-5 text-zinc-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-zinc-200">Este evento está cerrado</p>
+        <p class="text-sm text-zinc-400 mt-0.5">La liquidación es definitiva y no se permite registrar más ventas de merchandising desde el TPV.</p>
+      </div>
+    </div>
+
     <!-- TARJETAS DE RESUMEN (KPIs) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-zinc-800 flex flex-col justify-center relative overflow-hidden">
         <div class="absolute -right-4 -top-4 w-16 h-16 bg-orange-500/10 rounded-full blur-xl"></div>
         <p class="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1 relative z-10">Ingresos Totales</p>
@@ -81,9 +92,16 @@
 
       <!-- Tarjeta para el Caché -->
       <div class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-zinc-800 flex flex-col justify-center">
-        <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">{{ event ? 'Caché (Actuación)' : 'Caché Histórico' }}</p>
-        <p class="text-2xl font-bold text-zinc-100" *ngIf="event">{{ event.cache_amount | number:'1.2-2' }}€</p>
-        <p class="text-2xl font-bold text-zinc-100" *ngIf="!event">{{ summary.cache | number:'1.2-2' }}€</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">{{ event ? 'Caché Cobrado' : 'Caché Hist. Cobrado' }}</p>
+        <p class="text-2xl font-bold text-zinc-100" *ngIf="event">{{ (pendingCache > 0 ? 0 : event.cache_amount) | number:'1.2-2' }}€</p>
+        <p class="text-2xl font-bold text-zinc-100" *ngIf="!event">{{ (summary.collected_cache || summary.cache || 0) | number:'1.2-2' }}€</p>
+      </div>
+
+      <!-- Tarjeta Caché Pendiente -->
+      <div *ngIf="pendingCache > 0 || !event" class="bg-zinc-900 p-5 rounded-xl shadow-sm border border-blue-900/30 flex flex-col justify-center relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl"></div>
+        <p class="text-xs font-bold uppercase tracking-wider text-blue-500 mb-1 relative z-10">Pendiente de Cobrar</p>
+        <p class="text-2xl font-bold text-zinc-100 relative z-10">{{ pendingCache | number:'1.2-2' }}€</p>
       </div>
 
       <!-- Tarjeta de Gastos -->
