@@ -17,6 +17,9 @@ export class ExpensesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   expenses: any[] = [];
+  filteredExpenses: any[] = [];
+  currentFilter: 'all' | 'pending' | 'paid' = 'all';
+
   events: any[] = [];
   isLoading = true;
 
@@ -34,7 +37,8 @@ export class ExpensesComponent implements OnInit {
       amount: [null, [Validators.required, Validators.min(0.01)]],
       expense_date: [new Date().toISOString().split('T')[0], Validators.required],
       event_id: [''], // Opcional
-      description: ['']
+      description: [''],
+      is_paid: [0]
     });
   }
 
@@ -53,6 +57,7 @@ export class ExpensesComponent implements OnInit {
       this.expenseService.getExpenses().subscribe({
         next: (expRes) => {
           this.expenses = expRes.data || [];
+          this.applyFilter();
           this.isLoading = false;
           this.cdr.detectChanges();
         },
@@ -61,10 +66,25 @@ export class ExpensesComponent implements OnInit {
     });
   }
 
+  applyFilter(): void {
+    if (this.currentFilter === 'paid') {
+      this.filteredExpenses = this.expenses.filter(e => e.is_paid);
+    } else if (this.currentFilter === 'pending') {
+      this.filteredExpenses = this.expenses.filter(e => !e.is_paid);
+    } else {
+      this.filteredExpenses = [...this.expenses];
+    }
+  }
+
+  setFilter(filter: 'all' | 'pending' | 'paid'): void {
+    this.currentFilter = filter;
+    this.applyFilter();
+  }
+
   toggleCreateForm(): void {
     this.showCreateForm = !this.showCreateForm;
     if (!this.showCreateForm) {
-      this.expenseForm.reset({ category: 'Gasolina', expense_date: new Date().toISOString().split('T')[0] });
+      this.expenseForm.reset({ category: 'Gasolina', expense_date: new Date().toISOString().split('T')[0], is_paid: 0 });
     }
   }
 
@@ -83,6 +103,20 @@ export class ExpensesComponent implements OnInit {
         this.loadData(); // Recargamos la tabla
       },
       error: (err) => { this.isSubmitting = false; alert('Error al registrar el gasto.'); }
+    });
+  }
+
+  togglePaymentStatus(expense: any): void {
+    const newStatus = expense.is_paid ? 0 : 1;
+    
+    this.expenseService.updateExpense(expense.id, { is_paid: newStatus }).subscribe({
+      next: () => {
+        expense.is_paid = newStatus;
+        this.showToast(newStatus ? 'Gasto marcado como pagado' : 'Gasto marcado como pendiente');
+        this.applyFilter(); // Aplicamos el filtro de nuevo para sacarlo de la vista si es necesario
+        this.cdr.detectChanges(); // Forzamos la actualización de la vista
+      },
+      error: (err) => alert(err.error?.message || 'Error al actualizar el estado de pago.')
     });
   }
 

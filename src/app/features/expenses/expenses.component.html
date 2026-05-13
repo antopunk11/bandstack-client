@@ -52,6 +52,11 @@
         <input type="text" formControlName="description" placeholder="Ej: Gasolina furgo Madrid-Valencia" class="w-full p-3 bg-zinc-950 text-white border border-zinc-800 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder-zinc-700">
       </div>
 
+      <div class="flex items-center">
+        <input type="checkbox" formControlName="is_paid" id="is_paid" class="w-4 h-4 text-orange-600 bg-zinc-950 border-zinc-800 rounded focus:ring-orange-500 focus:ring-2">
+        <label for="is_paid" class="ml-2 text-sm font-medium text-zinc-400 cursor-pointer">Marcar el gasto como pagado al momento</label>
+      </div>
+
       <div class="pt-2">
         <button type="submit" [disabled]="expenseForm.invalid || isSubmitting"
           class="w-full bg-orange-600 text-white font-semibold p-3 rounded-xl hover:bg-orange-500 active:scale-[0.98] transition-all flex justify-center items-center disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 shadow-lg shadow-orange-900/20">
@@ -67,9 +72,22 @@
     <svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
   </div>
 
+  <!-- FILTROS -->
+  <div *ngIf="!isLoading && expenses.length > 0" class="flex gap-2 mb-4 overflow-x-auto pb-2">
+    <button (click)="setFilter('all')" [class]="currentFilter === 'all' ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-900/50 text-zinc-400 border-zinc-800/50 hover:bg-zinc-800 hover:text-zinc-300'" class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap">
+      Todos
+    </button>
+    <button (click)="setFilter('pending')" [class]="currentFilter === 'pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 'bg-zinc-900/50 text-zinc-400 border-zinc-800/50 hover:bg-zinc-800 hover:text-zinc-300'" class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap">
+      Pendientes
+    </button>
+    <button (click)="setFilter('paid')" [class]="currentFilter === 'paid' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-900/50 text-zinc-400 border-zinc-800/50 hover:bg-zinc-800 hover:text-zinc-300'" class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap">
+      Pagados
+    </button>
+  </div>
+
   <!-- LISTADO DE GASTOS -->
-  <div *ngIf="!isLoading && expenses.length > 0" class="space-y-4">
-    <div *ngFor="let exp of expenses" class="bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-800 relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div *ngIf="!isLoading && filteredExpenses.length > 0" class="space-y-4">
+    <div *ngFor="let exp of filteredExpenses" class="bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-800 relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       
       <!-- Indicador Categoría -->
       <div class="absolute top-0 right-0 px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-lg border-b border-l border-zinc-800 bg-zinc-800 text-zinc-400">
@@ -77,7 +95,14 @@
       </div>
 
       <div>
-        <p class="text-xs font-bold text-orange-500 mb-1">{{ exp.expense_date | date:'dd/MM/yyyy' }} <span class="text-zinc-600 font-medium ml-1">por {{ exp.user_name }}</span></p>
+        <p class="text-xs font-bold text-orange-500 mb-1 flex items-center gap-1">
+          {{ exp.expense_date | date:'dd/MM/yyyy' }} 
+          <span class="text-zinc-500 font-medium ml-1 flex items-center gap-1">
+            &bull; 
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            {{ exp.user_name }}
+          </span>
+        </p>
         <h3 class="text-base font-bold text-white">{{ exp.description || 'Sin descripción' }}</h3>
         <p *ngIf="exp.event_name" class="text-sm text-zinc-400 mt-1 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -86,11 +111,31 @@
       </div>
 
       <!-- Importe -->
-      <div class="w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0 border-t border-zinc-800 sm:border-0 pt-3 sm:pt-0">
-        <span class="text-xl font-black text-red-400">-{{ exp.amount }}€</span>
+      <div class="w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0 border-t border-zinc-800 sm:border-0 pt-3 sm:pt-0 flex flex-col items-start sm:items-end gap-2">
+        <span class="text-xl font-black text-red-400 block">-{{ exp.amount }}€</span>
+        
+        <!-- Toggle de Pagado/Pendiente -->
+        <button 
+          (click)="togglePaymentStatus(exp)"
+          [class]="exp.is_paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20'"
+          class="px-2.5 py-1 text-xs font-medium rounded-full border transition-colors flex items-center gap-1.5 cursor-pointer">
+          <svg *ngIf="exp.is_paid" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <svg *ngIf="!exp.is_paid" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          {{ exp.is_paid ? 'Pagado' : 'Pendiente' }}
+        </button>
       </div>
       
     </div>
+  </div>
+
+  <!-- ESTADO VACÍO (Filtro sin resultados) -->
+  <div *ngIf="!isLoading && expenses.length > 0 && filteredExpenses.length === 0" class="bg-zinc-900 border-2 border-dashed border-zinc-800 rounded-xl p-10 text-center">
+    <p class="text-zinc-300 font-medium">No hay gastos que coincidan con este filtro.</p>
+    <p class="text-zinc-500 text-sm mt-1">Prueba a seleccionar "Todos" para ver el listado completo.</p>
   </div>
 
   <!-- ESTADO VACÍO -->

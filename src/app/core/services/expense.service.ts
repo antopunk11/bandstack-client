@@ -17,4 +17,8 @@ export class ExpenseService {
   createExpense(data: any): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/expenses`, data);
   }
+
+  updateExpense(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/expenses`, { id, ...data });
+  }
 }
