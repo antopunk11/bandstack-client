@@ -49,6 +49,11 @@ export class AuthService {
     const user = this.user$();
     if (!user) return false;
     
+    // El superadmin hereda todos los accesos automáticamente
+    if (user.role === 'superadmin') {
+      return true;
+    }
+
     return roles.includes(user.role);
   }
 

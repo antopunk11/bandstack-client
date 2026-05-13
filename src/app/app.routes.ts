@@ -81,6 +81,16 @@ export const routes: Routes = [
           import('./features/settings/settings.component').then(m => m.SettingsComponent),
         title: 'Ajustes — BandStack',
       },
+
+      // ── Solo SuperAdmin (SaaS Plataforma) ───────────────────── 
+      {
+        path: 'bands',
+        canActivate: [roleGuard],
+        data: { roles: ['superadmin'] },
+        loadComponent: () =>
+          import('./features/bands/bands.component').then(m => m.BandsComponent),
+        title: 'Plataforma SaaS — BandStack',
+      },
     ],
   },
 

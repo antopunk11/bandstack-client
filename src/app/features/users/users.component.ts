@@ -107,6 +107,12 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(user: any): void {
+    const currentUser = this.authService.user$();
+    if (currentUser && currentUser.id === user.id) {
+      alert('Acción bloqueada: No puedes eliminar tu propia cuenta por seguridad.');
+      return;
+    }
+
     if (confirm(`¿Seguro que quieres eliminar a ${user.name}?`)) {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
